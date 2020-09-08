@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+</head>
+<body onload="load()">
+<button onclick="selectCamera()">切换采集卡输入</button>
+<h3>要使用的图像：</h3>
+
+<img id="tulip" src="te.png" alt="The Tulip" style="width:500px;height:500px;display:none"/>
+<video id="v1" src="12.mp4" alt="The Tulip" style="width:500px;height:500px" loop="loop" autoplay
+       type="video/mp4"></video>
+<p>画布：</p>
+<canvas id="myCanvas" width="500" height="300" style="border:1px solid #d3d3d3;background:#ffffff;">
+    Your browser does not support the HTML5 canvas tag.
+</canvas>
+
+<script>
+    var video = document.getElementById("v1");
+    var imageCapture;
+
+    function selectCamera() {
+        video.srcObject = window.stream;
+    }
+
+    function load() {
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+
+        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+        navigator.getUserMedia({
+            video: {},
+            audio: false
+        }, function (stream) {
+            window.stream = stream;
+
+
+            var tracks = stream.getTracks();
+            if (tracks && tracks.length > 0) {
+                imageCapture = new ImageCapture(tracks[0]);
+                var setting = tracks[0].getSettings();
+                frame_size = {'width': setting.width, 'height': setting.height};
+                console.log("video frame_size :", frame_size);
+            }
+            stream.onended = function () {
+                console.log('stream ended');
+            };
+
+
+        }, function (e) {
+            window.stream = null;
+
+            console.log(e);
+        });
+
+        render();
+
+        function render() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                ctx.drawImage(video, 0, 0, 500, 500);
+            }
+            requestAnimationFrame(render);
+        }
+    }
+</script>
+
+</body>
+</html>

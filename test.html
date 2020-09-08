@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+</head>
+<body onload="load()">
+<button onclick="selectCamera()">切换采集卡输入</button>
+<h3>要使用的图像：</h3>
+
+<table style="position: absolute;width: 100%">
+    <tbody>
+    <tr style="width: 100%">
+        <td style="width: 50%"><video id="v1"   alt="The Tulip" style="width:640px;height: 480px" loop="loop"  muted autoplay
+       type="video/mp4"></video></td>
+        <td style="width: 50%"><canvas id="myCanvas"  style="width:640px;height: 480px;border:1px solid #d3d3d3;background:#ffffff;">
+    Your browser does not support the HTML5 canvas tag.
+</canvas></td>
+    </tr>
+    </tbody>
+</table>
+
+<p>画布：</p>
+
+
+<script>
+    var video = document.getElementById("v1");
+
+
+    function selectCamera() {
+        video.srcObject = window.stream;
+    }
+
+    function load() {
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+        if (this.lastStream) {
+            for (var track in  this.lastStream.getTracks()){
+                track.stop();
+            }
+
+        }
+        navigator.mediaDevices.enumerateDevices().then(function (deviceInfos) {
+
+            for (var i = 0; i !== deviceInfos.length; ++i) {
+                var deviceInfo = deviceInfos[i];
+                if(deviceInfo.kind=="videoinput"){
+                       console.log(deviceInfo);
+                }
+
+            }
+        });
+        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+        navigator.getUserMedia({
+            video: {"width":640,"height":480},
+            audio: false
+        }, function (stream) {
+            window.stream = stream;
+
+
+            var tracks = stream.getTracks();
+            if (tracks && tracks.length > 0) {
+
+                var setting = tracks[0].getSettings();
+                frame_size = {'width': setting.width, 'height': setting.height};
+                console.log("video frame_size :", frame_size);
+                  render();
+            }
+            stream.onended = function () {
+                console.log('stream ended');
+            };
+
+
+        }, function (e) {
+            window.stream = null;
+
+            console.log(e);
+        });
+
+
+
+        function render() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                ctx.drawImage(video, 0, 0, 1920, 1080, 0,0, 800,600);
+            }
+            requestAnimationFrame(render);
+        }
+    }
+</script>
+
+</body>
+</html>

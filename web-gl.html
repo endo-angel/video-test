@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Three框架</title>
+        <script src="js/three.js"></script>
+        <style type="text/css">
+            div#canvas-frame {
+                border: none;
+                cursor: pointer;
+                width: 100%;
+                height: 600px;
+                background-color: #EEEEEE;
+            }
+            .booth {
+                position: absolute;
+            }
+        </style>
+        <script>
+            var renderer;
+            function initThree() {
+                width = document.getElementById('canvas-frame').clientWidth;
+                height = document.getElementById('canvas-frame').clientHeight;
+
+                renderer = new THREE.WebGLRenderer({antialias : true});
+                renderer.setSize(width, height);
+                document.getElementById('canvas-frame').appendChild(renderer.domElement);
+                renderer.setClearColor(0xFFFFFF, 1.0);
+            }
+
+            var camera;
+            function initCamera() {
+                camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
+                camera.position.z = 100;
+            }
+
+            var scene;
+            function initScene() {
+                scene = new THREE.Scene();
+            }
+
+            var light;
+            function initLight() {
+                // 环境光
+                light = new THREE.AmbientLight(0xffffff);
+                light.position.set(100, 100, 200);
+                scene.add(light);
+            }
+
+
+            var mesh;
+            var geometry;
+            var material;
+
+            function initObject() {
+                scene = new THREE.Scene();
+                geometry = new THREE.PlaneGeometry( 80, 50);
+
+                var video = document.getElementById('video');
+                var vendorUrl = window.URL || window.webkitURL;
+                var texture;
+
+
+                navigator.getMedia = navigator.getUserMedia ||
+                                     navigator.webkitGetUserMedia ||
+                                     navigator.mozGetUserMedia ||
+                                     navigator.msGetUserMedia ||
+                                     (navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+                navigator.getMedia({
+                    video: true,  // 摄像头
+                    audio: false  // 音频
+                }, function(strem){
+                    //console.log(">>>>>>>>>>>"+strem); // 获取到视频流
+                    video.srcObject = strem; // 绑定到video标签，输出
+                    video.play(); // 向PeerConnection中加入需要发送的流
+
+                }, function(error) {
+                    console.log(error);
+                });
+
+
+                texture = new THREE.VideoTexture( video );//可以直接把视频设为材质
+                texture.minFilter = THREE.LinearFilter;
+                texture.magFilter = THREE.LinearFilter;
+                texture.format = THREE.RGBFormat;
+
+                material = new THREE.MeshPhongMaterial( { map: texture , side: THREE.DoubleSide} );
+                mesh = new THREE.Mesh(geometry,  material);
+                scene.add(mesh);
+
+            }
+
+
+
+            function threeStart() {
+                initObject();
+                initThree();
+                initCamera();
+                initLight();
+                animation();
+            }
+
+            function animation() {
+                requestAnimationFrame(animation);
+                renderer.render(scene, camera);
+            }
+
+
+        </script>
+        <script src="js/Three.js"></script>
+    </head>
+
+    <body onload="threeStart();">
+        <div id="canvas-frame">
+            <div class="booth">
+                <video id="video" width="400" height="300"></video>
+                <!-- <canvas id='canvas' width='400' height='300'></canvas> -->
+            </div>
+        </div>
+
+    </body>
+</html>
